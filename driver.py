@@ -52,7 +52,6 @@ if __name__ == '__main__':
 
     milestones = np.arange(-25, 26, 1)
    
-    """
     # Flat system
     print '#'*30 + '\n#         Flat System        #\n'  + '#'*30
     name = 'flat'
@@ -82,7 +81,6 @@ if __name__ == '__main__':
             length = 1e-6, dt = 1e-15, cOpt = cOpt)
     #perm.processMilestones(system, milestones)
     print '\n\n'
-    """
 
     # Small hill system
     print '#'*30 + '\n#      Small Hill System        #\n'  + '#'*30
@@ -118,7 +116,6 @@ if __name__ == '__main__':
     #perm.processMilestones(system, milestones)
     print '\n\n'
 
-    """
     # Urea like system
     print '#'*30 + '\n#         Urea System        #\n'  + '#'*30
     name = 'urea'
@@ -140,10 +137,12 @@ if __name__ == '__main__':
     smolP = system.smolPerm()
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
+    """ 
     perm.bruteMPCrossing(system, numSims=1000, length = 1, 
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1, 
             dt = 1e-12, cOpt = cOpt)
+    """
     #perm.processBrute(system)
 
     milestones = np.arange(-25, 26, 1)
@@ -173,14 +172,15 @@ if __name__ == '__main__':
     smolP = system.smolPerm()
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
+    """
     perm.bruteMPCrossing(system, numSims=1000, length = 1e-4, 
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1e-4, 
             dt = 1e-12, cOpt = cOpt)
+    """
     #perm.processBrute(system)
 
     perm.milestoneMP(system, milestones, numSims = 10000, 
             length = 1e-4, dt = 1e-15, cOpt = cOpt)
     #perm.processMilestones(system, milestones)
     print '\n\n'
-    """

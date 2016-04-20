@@ -688,6 +688,18 @@ def processMilestones(system, milestones, prefix='datasets/'):
     q = np.zeros(N)
     q[0] = 1
     
+    
+    
+    # Print the transition statistics
+    for row in np.arange(0,N,1):
+        print row, rowSum[row]
+        if row == 0:
+            print K[row, row], K[row,row+1]
+        elif row == N-1:
+            print K[row, row-1], K[row, row]
+        else:
+            print K[row,row-1], K[row, row], K[row,row+1]
+    
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         qstat = vl[:,-1].real    # Get first column
@@ -700,6 +712,9 @@ def processMilestones(system, milestones, prefix='datasets/'):
         Kinf = K**99999999 # Some big number. TODO check if it's big enough
         qstat = q.dot(Kinf)
         qstat = qstat/LA.norm(qstat)
+    
+    print qstat
+    print lifetimes
     # Compute the stationary probability
     pstat = np.multiply(qstat, lifetimes)
 
