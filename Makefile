@@ -16,12 +16,18 @@
 # limitations under the License.
 # 
 
-.PHONY: all pcg-c traj_tools
+.PHONY: all pcg-c traj_tools clean
 all: traj_tools pcg-c
 
 pcg-c:
 	make -C $@
 
-traj_tools:
+traj_tools: pcg-c
 	make -C $@ install
 
+docs:
+	make -C docs html
+
+clean:
+	make -C traj_tools clean
+	make -C pcg-c clean

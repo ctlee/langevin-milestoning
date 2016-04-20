@@ -13,6 +13,7 @@ Contents:
    
    getting_started
    samplefunctions
+   membranesystem
 
 Indices and tables
 ==================

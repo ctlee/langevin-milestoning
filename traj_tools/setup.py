@@ -25,9 +25,11 @@ traj_tools = Extension('traj_tools',
                         ('MINOR_VERSION', '0')],
         sources=['src/traj_tools.c', 'src/gasdev.c', 
                 'src/random_real.c', 'src/entropy.c'], 
-        include_dirs=[numpy.get_include(), 'include'],
+        include_dirs=[numpy.get_include(), 'include',
+                '../pcg-c/include'],
         depends=['include/gasdev.h', 'include/random_real.h', 
-                'include/entropy.h','include/pcg_spinlock.h'],
+                'include/entropy.h','include/pcg_spinlock.h',
+                '../pcg-c/include/pcg_variants.h'],
         extra_compile_args=['-std=c99'])
 
 # run the setup

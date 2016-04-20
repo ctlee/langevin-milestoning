@@ -1,21 +1,80 @@
+################################################################################
+# langevin-milestoning: A Langevin dynamics engine
+# 
+# Copyright 2016 The Regents of the University of California.
+#
+# Authors: Christopher T. Lee <ctlee@ucsd.edu>
+#          Lane W. Votapka <lvotapka100@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+r"""
+The membranesystem module provides an abstract representation of an idealized
+particle crossing a membrane bilayer. The :py:class:`MembraneSystem` class 
+provides helper functions to compute inhomogeneous solubility-diffusion equation
+among other functions. It also provides support for simulation of milestones.
+
+Please reference the following if you use this code in your research:
+
+[1] L. W. Votapka*, C. T. Lee*, and R.E. Amaro. Two Relations to Estimate
+Permeability Using Milestoning. J. Phys. Chem. B. 2016. (Accepted)
+"""
+__authors__ = "Christopher T. Lee and Lane W. Votapka"
+__license__ = "Apache 2.0"
+
+
 import logging, sys
 import numpy as np
 from math import exp, log, pi, sqrt, ceil
+import cPickle as pickle
 
 import matplotlib
 if sys.platform == 'darwin':
     matplotlib.use('macosx') # cocoa rendering for Mac OS X
 import matplotlib.pyplot as plt
-import cPickle as pickle
-
 import traj_tools
 from samplefunctions import PMF, Viscosity
 
 # Global Constants
-kb = 0.0013806488   # kgA^2s^-2K-1
+kb = 0.0013806488       # kgA^2s^-2K-1
 avogadro = 6.022e23     # Avogradros number
 
 class MembraneSystem():
+    r"""
+    The :py:class:`MembraneSystem` represents a representation of a small 
+    molecule permeating a membrane bilayer. It provides helper functions for 
+    computing useful properties of crossing etc.
+
+    Parameters
+    ----------
+    name : string
+       The name of the system of interest
+    pmf : :py:class:`samplefunctions.PMF`
+       Specifies the PMF profile for the system
+    viscosity : :py:class:`samplefunctions.Viscosity`
+       Specifies the Viscosity profile.
+    mass : float
+       The mass of the permeating particle.
+    r : float
+       The hydrodynamic radius of the particle.
+    T : float
+       Temperature of the system in kelvin.
+    dz : float
+       Distance from the center of the bilayer to the edge in angstroms.
+    step : float
+       The stepsize to use for numerical integration
+    """
     def __init__(self, name, pmf, viscosity, mass, r, 
             T = 298, dz = 25, step = 0.0001):
         self.name = name
@@ -29,6 +88,9 @@ class MembraneSystem():
         self.dz = abs(dz)
 
     def plotProfiles(self):
+        r"""
+        Make a nice plot of the PMF and Viscosity of the system.
+        """
         fig1 = self.pmf.plot(1)
         fig2 = plt.figure(2, facecolor='white', figsize=(7, 5.6))
         ax1 = fig2.add_subplot(111)
@@ -41,12 +103,34 @@ class MembraneSystem():
         return fig1, fig2
 
     def getD(self, x):  # viscosity in units of kg/A/s
+        r"""
+        Get the value of the diffusivity in units of :math:`A^2 s^{-1}`.
+
+        Parameters
+        ----------
+        x : float, np.array
+           The value(s) at which to compute the diffusivity.
+
+        Returns
+        -------
+        D(x) : float, np.array
+           The corresponding diffusivity at :py:data:`x`.
+        """
         global kb
         return kb*self.T/(6*pi*self.viscosity(x)*self.r)   # A^2/s
 
     def inhomogenousSolDiff(self):
-        """
-        Calculate the inhomogenous solubility diffusion result
+        r"""
+        Compute the value of the inhomogeneous solubility-diffusion equation;
+
+        .. math:: 
+           P = \frac{1}{R} \left[\int_{z_1}^{z_2}\frac{\exp(\beta W(z))}
+           {D(z)}dz\right]^{-1}
+
+        Returns
+        -------
+        log(P) : float
+           The log permeability of the system in units of log :math:`A/s`.
         """
         global kb
         resistivity = np.trapz(
@@ -59,12 +143,28 @@ class MembraneSystem():
         return log(Pcm, 10)
 
     def smolPerm(self):
+        r"""
+        Computes the theoretical mean first passage time (MFPT),
+        
+        .. math::
+           \langle\tau\rangle = -\int_b^a e^{-\beta W(z)} \left[\int_b^z 
+           \frac{e^{\beta W(z')}}{D(z')}dz'\right]dz,
+       
+        as well as the MFPT-ISD,
+
+        .. math::
+            P = \frac{\int_b^a e^{-\beta W(z)}dz}{2\langle\tau\rangle}
+
+        Returns
+        -------
+        log(P) : float
+           The theoretical MFPT-ISD log permeability of the system in units of 
+           log :math:`A/s`.
+        """
         global kb, avogadro
-        # Calculate the mfpt by eq. 19...
         # Integral of e^(-W(z))/kT
         y1 = np.exp(-self.pmf(self.z)/(kb*self.T))
        
-        # TODO: resolve which y2 we should be using...
         y2 = [np.trapz(
                 np.exp(
                     self.pmf(np.arange(-self.dz, z, self.step)) /
@@ -73,24 +173,14 @@ class MembraneSystem():
                 self.getD(np.arange(-self.dz, z, self.step)),
                 dx = self.step)
                 for z in self.z]
-
-        """
-        y2 = [np.trapz(
-                np.exp(
-                    self.pmf(np.arange(-self.dz, z+self.step, self.step)) /
-                    (kb*self.T)
-                ) /
-                self.getD(np.arange(-self.dz, z+self.step, self.step)),
-                dx = self.step)
-                for z in self.z]
-        """
+        
         y = np.multiply(y1,y2)  # Elementwise product
 
         mfpt = np.trapz(y, self.z)
-        print("Eq 22 MFPT: %e s"%(mfpt)) # s
+        print("Theoretical MFPT: %e s"%(mfpt)) # s
         P = np.trapz(y1, dx = self.step)/(2*mfpt)   # A/s
         Pcm = P*1e-8    # cm/s
-        print("Eq 22 Permeability: %e cm/s; log(P) %f"%(Pcm, log(Pcm,10)))
+        print("Theoretical MFPT-ISD: %e cm/s; log(P) %f"%(Pcm, log(Pcm,10)))
         return log(Pcm, 10)
    
     def cumulativeProbDist(self):
@@ -101,11 +191,11 @@ class MembraneSystem():
             length = 2e-8,              # Length (s)
             dt = 2e-15,                 # dt (s)
             pos = 0,                    # Initial position (A) 
-            vel = None,                    # initial velocity (A/s)
-            minx = -1.0,                 # lower boundary
+            vel = None,                 # initial velocity (A/s)
+            minx = -1.0,                # lower boundary
             maxx = 1.0,                 # upper boundary
-            phase = "forward",
-            reflecting = False):          # which phase of calculation we are in
+            phase = "forward",          # phase of the calculation
+            reflecting = False):        # boundary condition
         
         logging.debug("Starting milestone C")
         if pos > maxx or pos < minx:
@@ -114,7 +204,7 @@ class MembraneSystem():
         N = int(ceil(length/dt))
         if vel == None: # sample from a Maxwell-Boltzmann distribution
             vel = np.random.normal(0.0, sqrt(kb*self.T/self.m))
-       
+        logging.error(vel)
         # Cast to c happy integer booleans, instead of mucky PyObjects
         if phase == "forward":
             reverse = 0
