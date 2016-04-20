@@ -6,8 +6,8 @@ import matplotlib
 if sys.platform == 'darwin':
     matplotlib.use('macosx') # cocoa rendering for Mac OS X
 import matplotlib.pyplot as plt
-
 import cPickle as pickle
+
 import traj_tools
 from samplefunctions import PMF, Viscosity
 
