@@ -30,7 +30,7 @@ for sys in systems:
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
     
-    perm.processBrute(system, prefix)
+    #perm.processBrute(system, prefix)
     perm.processMilestones(system, milestones, prefix)
     """
     try:

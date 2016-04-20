@@ -17,9 +17,9 @@
 # 
 
 TARGETS = randreal-demo pcg64-demo
-LDLIBS += -lpcg_random -lm
-CPPFLAGS += -I../include
-CFLAGS += -std=c99 -O3 -W -Wall -Werror # careful with optimization flags
+LDLIBS += -lpcg_random -lm -L../../pcg-c/src
+CFLAGS += -std=c99 -O3 -W -Wall -Werror -I../../pcg-c/include -I../include
+# careful with optimization flags
 
 all: $(TARGETS)
 

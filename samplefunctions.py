@@ -1,17 +1,43 @@
+################################################################################
+# langevin-milestoning: A Langevin dynamics engine
+# 
+# Copyright 2016 The Regents of the University of California.
+#
+# Authors: Christopher T. Lee <ctlee@ucsd.edu>
+#          Lane W. Votapka <lvotapka100@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+r"""
+A module which provides support for arbitraty PMF and viscosity profiles
+interpolated from user provided inputs.
+
+Please reference the following if you use this code in your research:
+
+[1] L. W. Votapka*, C. T. Lee*, and R.E. Amaro. Two Relations to Estimate
+Permeability Using Milestoning. J. Phys. Chem. B. 2016. (Accepted)
 """
-@description: Performs a 1D Langevin dynamics simulation to validate the results
-        of the milestoning pemreability derivation
-@authors:   Christopher T. Lee (ctlee@ucsd.edu)
-@copyright Amaro Lab 2015. All rights reserved.
-"""
+__authors__ = "Christopher T. Lee and Lane W. Votapka"
+__license__ = "Apache 2.0"
+
 import sys
 import numpy as np
-from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import PchipInterpolator as pchip
+
 import matplotlib
 if sys.platform == 'darwin':
     matplotlib.use('macosx') # cocoa rendering for Mac OS X
-
 import matplotlib.pyplot as plt
 import plottools
 
@@ -24,7 +50,7 @@ class PMF(object):
     Parameters
     ----------
     dz : float 
-        distance from center to edge of membrane
+        Distance from center to edge of membrane
     w1 : float
         PMF at interface in units of kgA^2s^-2
     w2 : float
@@ -32,9 +58,9 @@ class PMF(object):
     w3 : float
         PMF at core
     a : float
-        location of interface (:py:data:`w1`)
+        Location of interface (:py:data:`w1`)
     b : float
-        location of interface/core (:py:data:`w2`)
+        Location of interface/core (:py:data:`w2`)
 
     Notes
     -----
@@ -161,18 +187,70 @@ class PMF(object):
         return fig
     
 class Viscosity(object):
-    # TODO document this function
+    r"""
+    A class to encapsulate the Viscosity profile 
+
+    Parameters
+    ----------
+    dz : float 
+        Distance from center to edge of membrane
+    d1 : float
+        Viscosity in bulk in units of kgA^2s^-2
+    d2 : float
+        Viscosity the interface
+    d3 : float
+        Viscosity at the interface/core
+    d4 : float
+        Viscosity at core
+    a : float
+        location of bulk (:py:data:`d1`)
+    b : float
+        location of interface (:py:data:`d2`)
+    c : float
+        location of interface/core (:py:data:`d3`)
+    
+    Notes
+    -----
+    - :py:data:`d1`, :py:data:`w2`, :py:data:`w3`, and :py:data:`d4` should be 
+      specified in units of :math:`kg A^{-1} s^{-1}`.
+    - All distances are given in units of Angstroms
+    """
     def __init__(self, dz, d1, d2, d3, d4, a, b, c):
         self.dz = dz
         self.x = [-dz, -a, -b, -c, 0, c, b, a, dz]
         self.y = [d1, d1, d2, d3, d4, d3, d2, d1, d1]
         self.pchip = pchip(self.x, self.y)
 
-    #@jit(nogil=True)
     def __call__(self, x):
+        r"""
+        Get the value at a given position or positions of the Viscosity
+
+        Parameters
+        ----------
+        x : np.ndarray, float
+            x is(are) the position(s) at which to evaluate
+
+        Returns
+        -------
+        y : np.ndarray, float
+            Interpolated values of the Viscosity
+        """
         return self.pchip(x, extrapolate = True)
 
     def plot(self, fignum = 1):
+        r"""
+        Generate a nice plot of the interpolated PMF and force.
+
+        Parameters
+        ----------
+        fignum : int
+            The figure number to generate
+
+        Returns
+        -------
+        fig : matplotlib.pyplot.figure
+            MatPlotLib figure for future manipulation and saving
+        """
         extraBound = 5
         
         fig = plt.figure(fignum, facecolor='white', figsize=(7,5.6))
