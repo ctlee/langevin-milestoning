@@ -32,14 +32,4 @@ for sys in systems:
     
     #perm.processBrute(system, prefix)
     perm.processMilestones(system, milestones, prefix)
-    """
-    try:
-        perm.processBrute(system, prefix)
-    except Exception as e:
-        print e
-    try:
-        perm.processMilestones(system, milestones, prefix)
-    except Exception as e:
-        print e
-    """
     print '\n\n'

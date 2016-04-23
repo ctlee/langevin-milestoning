@@ -63,6 +63,7 @@ if __name__ == '__main__':
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
 
+    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -75,6 +76,7 @@ if __name__ == '__main__':
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims = 1000, length = 1e-6, 
             dt = 1e-12, cOpt = cOpt)
+    """
     #perm.processBrute(system)
     
     perm.milestoneMP(system, milestones, numSims = 10000, 
@@ -92,7 +94,8 @@ if __name__ == '__main__':
         pickle.dump(system, open('systems/%s_system.p'%(name), 'wb'), -1)
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
-   
+  
+    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -103,7 +106,6 @@ if __name__ == '__main__':
     smolP = system.smolPerm()
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
-    """
     perm.bruteMPCrossing(system, numSims=1000, length = 1e-4, 
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1e-4, 
@@ -126,7 +128,8 @@ if __name__ == '__main__':
         pickle.dump(system, open('systems/%s_system.p'%(name), 'wb'), -1)
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
-   
+  
+    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -137,7 +140,6 @@ if __name__ == '__main__':
     smolP = system.smolPerm()
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
-    """ 
     perm.bruteMPCrossing(system, numSims=1000, length = 1, 
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1, 
@@ -161,7 +163,8 @@ if __name__ == '__main__':
         pickle.dump(system, open('systems/%s_system.p'%(name), 'wb'), -1)
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
-   
+  
+    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -172,7 +175,6 @@ if __name__ == '__main__':
     smolP = system.smolPerm()
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
-    """
     perm.bruteMPCrossing(system, numSims=1000, length = 1e-4, 
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1e-4, 

@@ -14,7 +14,7 @@ import plottools, traj_tools
 if __name__ == '__main__':
     mu, sigma = 0, 1
     blocks = 100
-    dims = 1000
+    dims = 10000
     nums = np.zeros(dims*dims)
     traj_tools.testRNG(nums, dims*dims)    
     fig = plt.figure(1, facecolor='white',figsize=(7,7))

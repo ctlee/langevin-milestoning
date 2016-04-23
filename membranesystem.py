@@ -153,7 +153,7 @@ class MembraneSystem():
         as well as the MFPT-ISD,
 
         .. math::
-            P = \frac{\int_b^a e^{-\beta W(z)}dz}{2\langle\tau\rangle}
+            P = \frac{\int_b^a e^{-\beta W(z)}dz}{2\langle\tau\rangle}.
 
         Returns
         -------
@@ -184,6 +184,13 @@ class MembraneSystem():
         return log(Pcm, 10)
    
     def cumulativeProbDist(self):
+        r"""
+        Compute the theoretical cumulative probability distribution,
+
+        .. math::
+           \int \exp\left(\frac{-W(z)}{k_B*T}\right)*dz.
+
+        """
         global kb, avogadro
         return np.sum(np.exp(-self.pmf(self.z)/(kb*self.T)))*self.step
 
@@ -196,15 +203,36 @@ class MembraneSystem():
             maxx = 1.0,                 # upper boundary
             phase = "forward",          # phase of the calculation
             reflecting = False):        # boundary condition
-        
+        r"""
+        Run milestoning with enhanced C code.
+
+        Parameters
+        ----------
+        length : float
+           The maximum simulation length in seconds.
+        dt : float
+           The numerical timestep to take in seconds.
+        pos : float
+           The initial position in angstroms.
+        vel : float
+           The starting velocity.
+        minx : float
+           lower boundary of the simulation in angstroms.
+        maxx : float
+           upper boundar of the simulation in angstroms.
+        phase : string
+           the phase of the milestoning process (forward or reverse).
+        reflecting : bool
+           place a reflecting boundary at minx or not.
+        """
         logging.debug("Starting milestone C")
         if pos > maxx or pos < minx:
             raise ValueError("Position %f not in bounds of min/max (%f, %f)"
                 %(pos, minx, maxx))
+        np.random.RandomState()
         N = int(ceil(length/dt))
         if vel == None: # sample from a Maxwell-Boltzmann distribution
             vel = np.random.normal(0.0, sqrt(kb*self.T/self.m))
-        logging.error(vel)
         # Cast to c happy integer booleans, instead of mucky PyObjects
         if phase == "forward":
             reverse = 0
@@ -239,7 +267,7 @@ class MembraneSystem():
         if pos > maxx or pos < minx:
             raise ValueError("Position %f not in bounds of min/max (%f, %f)"
                     %(pos, minx, maxx))
-        
+        np.random.RandomState()
         N = int(ceil(length/dt))   # Max number of trajectory steps
         if vel == None: # sample from a Maxwell-Boltzmann distribution
             # stdev of a velocity distribution

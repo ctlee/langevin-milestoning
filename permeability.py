@@ -373,7 +373,7 @@ def milestoneWorker(args):
     else:
         maxx = milestones[index+1]
     
-    m0, m1, accept, v0, time = system.milestone(length = length,
+    m0, m1, accept, v0, time = milestonefunc(length = length,
             dt = dt,
             pos = pos,
             vel = None,
@@ -382,7 +382,7 @@ def milestoneWorker(args):
             phase = 'reverse',
             reflecting = False)
     if accept:
-        m0, m1, accept, _, time = system.milestone(length = length,
+        m0, m1, accept, _, time = milestonefunc(length = length,
                 dt = dt,
                 pos = pos,
                 vel = -v0,
@@ -505,9 +505,6 @@ def milestoning(system, milestones, length = 1, dt = 2e-15,
                     fd.flush()
 
 def processMilestones(system, milestones, prefix='datasets/'):
-    """
-    TODO: Update to use sparse matrices.
-    """
     print("-----Process Milestone------")
     checkMilestones(system, milestones)
     try:
@@ -549,6 +546,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
             lifetimesDict[key] = np.array(stat[2])
     #logging.info("Unnormalized transition count:")
     #logging.info(transCount)
+
     rowSum = np.matrix.sum(transCount, axis=1)
     zeroIndices = rowSum == 0
     rowSum[zeroIndices] = np.inf
@@ -586,18 +584,44 @@ def processMilestones(system, milestones, prefix='datasets/'):
     q = np.zeros(N)
     q[0] = 0.5
     q[1] = 0.5
-   
-    """
-    # Print the transition statistics
+ 
+
+    forwardCount = np.zeros(N)
+    reverseCount = np.zeros(N)
+    # Make a nice barchart of the transition stats
     for row in np.arange(0,N,1):
-        print row, rowSum[row]
+        #print row, rowSum[row]
         if row == 0:
-            print K[row, row], K[row,row+1]
+            #print transCount[row, row], transCount[row,row+1]
+            reverseCount[row] = 0
+            forwardCount[row] = transCount[row, row+1]
         elif row == N-1:
-            print K[row, row-1], K[row, row]
+            #print transCount[row, row-1], transCount[row, row]
+            reverseCount[row] = transCount[row, row-1]
+            forwardCount[row] = 0
         else:
-            print K[row,row-1], K[row, row], K[row,row+1]
-    """ 
+            #print transCount[row,row-1], transCount[row, row], transCount[row,row+1]
+            reverseCount[row] = transCount[row, row-1]
+            forwardCount[row] = transCount[row, row+1]
+    
+    fig = plt.figure(98, facecolor='white', figsize=(7,5.6))
+    ax1 = fig.add_subplot(111)
+    width = 0.35    # width of the bars
+     
+    rects1 = ax1.bar(milestones, reverseCount, width, color='lightcoral')
+    rects2 = ax1.bar(milestones+width, forwardCount, width, color='palegreen')
+
+    ax1.set_ylabel(r'Transitions')
+    ax1.set_xlabel(r'Milestone')
+    ax1.legend((rects1[0], rects2[0]), ('Reverse', 'Forward'),
+            loc = 'upper right',
+            fontsize = 'small',
+            frameon = False)
+    ax1.margins(0.05,0.05)
+    plt.tight_layout()
+    fig.savefig('figures/%s_transitions.png'%(system.name), dpi=300)
+    plt.close('all')
+    
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         logging.info("Left eigenvalue %f"%(w[-1].real))
@@ -688,9 +712,8 @@ def processMilestones(system, milestones, prefix='datasets/'):
     q = np.zeros(N)
     q[0] = 1
     
-    
-    
     # Print the transition statistics
+    """
     for row in np.arange(0,N,1):
         print row, rowSum[row]
         if row == 0:
@@ -699,7 +722,8 @@ def processMilestones(system, milestones, prefix='datasets/'):
             print K[row, row-1], K[row, row]
         else:
             print K[row,row-1], K[row, row], K[row,row+1]
-    
+    """
+
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         qstat = vl[:,-1].real    # Get first column
@@ -713,8 +737,8 @@ def processMilestones(system, milestones, prefix='datasets/'):
         qstat = q.dot(Kinf)
         qstat = qstat/LA.norm(qstat)
     
-    print qstat
-    print lifetimes
+    #print qstat
+    #print lifetimes
     # Compute the stationary probability
     pstat = np.multiply(qstat, lifetimes)
 
@@ -754,6 +778,6 @@ def processMilestones(system, milestones, prefix='datasets/'):
             frameon = False)
     ax1.margins(0,0.05)
     if system.name == 'flat':
-        ax1.set_ylim([-0.5,0.5])
+        ax1.set_ylim([-2,2])
     fig.savefig('figures/%s_pmf_calc.png'%(system.name), dpi=300)
     plt.close('all')
