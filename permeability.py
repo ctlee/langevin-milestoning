@@ -337,7 +337,7 @@ def processBrute(system, prefix='datasets/'):
         rlow = rho-rhoCI[0]
         Plow = rlow*system.getD(-system.dz) / ((1-rlow)*bq) * 1e-8
         diff = Phigh-P
-        print("Brute PBCP: %e +/- %e cm/s; %f +/- %f"%(P, diff, 
+        print("Brute PBCP: %e +/- %e cm/s; %f +/- %e"%(P, diff, 
             log(P,10), (log(Phigh,10)-log(P,10) + log(P,10)-log(Plow,10))/2))
     else:
         logging.error('Invalid value of rho.')
@@ -524,6 +524,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
     if not np.all(np.equal(dt, dt[0])): 
         logging.warning('Mismatch in timestep.')
 
+    milestones = np.insert(milestones, 0, milestones[0]-(milestones[1]-milestones[0]))
     logging.info("Milestones:\n" + str(milestones))
     N = len(milestones)
     transCount = np.matrix(np.zeros((N, N)))
@@ -531,9 +532,11 @@ def processMilestones(system, milestones, prefix='datasets/'):
     transTimesDict = defaultdict(np.array)
     lifetimesDict = defaultdict(np.array)
     for stat in stats:
+        stat[0] = stat[0] + 1
+        stat[1] = stat[1] + 1
         key = (stat[0], stat[1])
         if stat[0] == stat[1]:
-            print stat
+            logging.warning('Observed self transition...')
         transCount[stat[0], stat[1]] += 1
         if transTimesDict.has_key(key):
             transTimesDict[key] = np.append(transTimesDict[key], stat[2])     
@@ -544,22 +547,19 @@ def processMilestones(system, milestones, prefix='datasets/'):
             lifetimesDict[key] = np.append(lifetimesDict[key], stat[2])
         else:
             lifetimesDict[key] = np.array(stat[2])
-    #logging.info("Unnormalized transition count:")
-    #logging.info(transCount)
-
+    logging.info("Unnormalized transition count:")
+    logging.info(transCount)
+  
+    # Set the artificial transition counts for the new initial milestone
+    transCount[0,1] = 9999999  # huge count to prevent statistical error
+    transCount[1,0] = transCount[1,2]
     rowSum = np.matrix.sum(transCount, axis=1)
-    zeroIndices = rowSum == 0
-    rowSum[zeroIndices] = np.inf
     K = np.divide(transCount,rowSum)
     
-    logging.info("Transition kernel (K):\n" + str(K))
     logging.info("Count per milestone:\n" + str(rowSum.T))
     logging.info("transCount:\n" + str(transCount))
     
     K = transCount/np.matrix.sum(transCount, axis=1)
-
-    logging.info("K:\n" + str(K)) 
-    #K = np.nan_to_num(0)    # Replace nans with 0
     logging.info("Transition kernel (K):\n" + str(K))
     logging.info("Count per milestone:\n" + 
             str(np.matrix.sum(transCount, axis=1)))
@@ -572,20 +572,34 @@ def processMilestones(system, milestones, prefix='datasets/'):
     lifetimes = np.zeros((N))
     for key in lifetimesDict:
         lifetimes[key] = np.mean(lifetimesDict[key])
+    lifetimes[0] = lifetimes[1]
+    
+    ########################################
+    #    Plot the Lifetimes                #
+    ########################################
+    fig = plt.figure(98, facecolor='white', figsize=(7,5.6))
+    ax1 = fig.add_subplot(111)
+
+    rects1 = ax1.bar(milestones, lifetimes, color='lightcoral')
+    ax1.set_ylabel(r'Lifetime (s)')
+    ax1.set_xlabel(r'Milestone')
+    
+    ax1.margins(0,0.05)
+    plt.tight_layout()
+    fig.savefig('figures/%s_lifetimes.png'%(system.name), dpi=300)
+    plt.close('all')
+
+    
     # convert to matrix
     lifetimes = np.matrix(lifetimes)
     logging.info("Lifetimes:\n" + str(lifetimes))
-    
+
+
     I = np.identity(N)
-   
-    mfpts, rhos, P_MFPTs, P_PBCPs = resample(transCount, lifetimes, system, milestones)
-
-    # Setup initial flux
-    q = np.zeros(N)
-    q[0] = 0.5
-    q[1] = 0.5
  
-
+    ########################################
+    #    Plot the Transitions              #
+    ########################################
     forwardCount = np.zeros(N)
     reverseCount = np.zeros(N)
     # Make a nice barchart of the transition stats
@@ -593,6 +607,10 @@ def processMilestones(system, milestones, prefix='datasets/'):
         #print row, rowSum[row]
         if row == 0:
             #print transCount[row, row], transCount[row,row+1]
+            # this row is artificially sampled
+            reverseCount[row] = 0
+            forwardCount[row] = 0
+        elif row == 1:
             reverseCount[row] = 0
             forwardCount[row] = transCount[row, row+1]
         elif row == N-1:
@@ -603,7 +621,6 @@ def processMilestones(system, milestones, prefix='datasets/'):
             #print transCount[row,row-1], transCount[row, row], transCount[row,row+1]
             reverseCount[row] = transCount[row, row-1]
             forwardCount[row] = transCount[row, row+1]
-    
     fig = plt.figure(98, facecolor='white', figsize=(7,5.6))
     ax1 = fig.add_subplot(111)
     width = 0.35    # width of the bars
@@ -613,15 +630,22 @@ def processMilestones(system, milestones, prefix='datasets/'):
 
     ax1.set_ylabel(r'Transitions')
     ax1.set_xlabel(r'Milestone')
-    ax1.legend((rects1[0], rects2[0]), ('Reverse', 'Forward'),
+    ax1.legend((rects1[0], rects2[0]), ('Left', 'Right'),
             loc = 'upper right',
             fontsize = 'small',
             frameon = False)
-    ax1.margins(0.05,0.05)
+    ax1.margins(0.05,0.1)
     plt.tight_layout()
     fig.savefig('figures/%s_transitions.png'%(system.name), dpi=300)
     plt.close('all')
+
+    mfpts, rhos, P_MFPTs, P_PBCPs = resample(transCount, lifetimes, system, milestones)
     
+    # Setup initial flux
+    q = np.zeros(N)
+    q[0] = 0.5
+    q[1] = 0.5
+ 
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         logging.info("Left eigenvalue %f"%(w[-1].real))
@@ -644,14 +668,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
 
     # Compute the stationary probability
     tabsorb = np.copy(lifetimes)
-    tabsorb[0,N-1] = 0
-    pstat = np.multiply(qstat, tabsorb)
-
-    logging.info("Stationary probability (pstat):\n" + str(pstat))
-
-    sumProb = np.sum(pstat)
-    pstat = pstat/sumProb   # Normalize to 1
-    pstat = pstat/pstat[0,0] # set first point to 0
+    tabsorb[0, N-1] = 0
 
     q = np.zeros((N,1))
     q[0,0] = 1
@@ -674,13 +691,6 @@ def processMilestones(system, milestones, prefix='datasets/'):
     rho = qstat[0,N-1]
     print("Milestoning Rho: %e +/- %e"%(rho, np.std(rhos)))
     
-    """ 
-    # It's better to integrate over the non-biased PMF
-    Pdamped = np.trapz(pstat, milestones)/(2*mfpt) * 1e-8 # A/s -> cm/s
-    print("Milestoning MFPT-ISD: %e +/- %e cm/s; %f +/- %f"
-            %(Pdamped, np.std(dampedPs), log(Pdamped, 10), logdiff))
-    """
-
     if rho != 0:
         Pnondamped = rho*system.getD(milestones[0])/ \
                 ((1-rho)*(milestones[1] - milestones[0])) * 1e-8
@@ -707,23 +717,11 @@ def processMilestones(system, milestones, prefix='datasets/'):
     K[N-1,0] = 0.5
     K[0,1] = 0.5
     K[0,N-1] = 0.5
-    
+
     # Setup initial flux
     q = np.zeros(N)
-    q[0] = 1
-    
-    # Print the transition statistics
-    """
-    for row in np.arange(0,N,1):
-        print row, rowSum[row]
-        if row == 0:
-            print K[row, row], K[row,row+1]
-        elif row == N-1:
-            print K[row, row-1], K[row, row]
-        else:
-            print K[row,row-1], K[row, row], K[row,row+1]
-    """
-
+    q[0] = 0.5
+    q[1] = 0.5 
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         qstat = vl[:,-1].real    # Get first column
@@ -736,9 +734,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
         Kinf = K**99999999 # Some big number. TODO check if it's big enough
         qstat = q.dot(Kinf)
         qstat = qstat/LA.norm(qstat)
-    
-    #print qstat
-    #print lifetimes
+
     # Compute the stationary probability
     pstat = np.multiply(qstat, lifetimes)
 
@@ -754,7 +750,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
         logdiff = log(Phigh,10)-log(Pdamped,10)
     else:
         logdiff = ((log(Phigh,10)-log(Pdamped,10)) + (log(Pdamped,10)-log(Plow,10)))/2
-    print("Milestoning PBC MFPT-ISD: %e +/- %e cm/s; %f +/- %f"
+    print("Milestoning PBC MFPT-ISD: %e +/- %e cm/s; %f +/- %e"
             %(Pdamped, dpstd, log(Pdamped, 10), logdiff))
     
     kb = 0.0019872041   # kcal/mol/A
@@ -778,6 +774,8 @@ def processMilestones(system, milestones, prefix='datasets/'):
             frameon = False)
     ax1.margins(0,0.05)
     if system.name == 'flat':
+        ax1.set_ylim([-2,2])
+    if system.name == 'smallhill':
         ax1.set_ylim([-2,2])
     fig.savefig('figures/%s_pmf_calc.png'%(system.name), dpi=300)
     plt.close('all')

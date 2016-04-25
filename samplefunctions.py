@@ -165,10 +165,9 @@ class PMF(object):
         handles1, labels1 = ax1.get_legend_handles_labels()
         handles2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(handles1 + handles2, labels1 + labels2, 
-                loc = 'lower left',
+                loc = 'upper left',
                 fontsize = 'small',
                 frameon = False)
-
         ax1.margins(0,0.05)
         ax2.margins(0,0.2)
 
