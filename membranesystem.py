@@ -245,6 +245,8 @@ class MembraneSystem():
         accept, finalpos, time = traj_tools.milestoneO(self.pmf.force, 
                 self.viscosity, self.m, self.r, self.T, pos, vel, minx, 
                 maxx, dt, N, reverse, reflecting)
+        if time == -1:
+            logging.warning('Length too short')
         time = dt*time
         logging.debug("Accept: %d; finalpos: %f; time: %e"
                 %(accept, finalpos, time))

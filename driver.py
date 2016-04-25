@@ -51,7 +51,8 @@ if __name__ == '__main__':
         raw_input("Using non-accelerated, hit enter to continue...")
 
     milestones = np.arange(-25, 26, 1)
-   
+  
+    """
     # Flat system
     print '#'*30 + '\n#         Flat System        #\n'  + '#'*30
     name = 'flat'
@@ -63,7 +64,6 @@ if __name__ == '__main__':
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
 
-    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -76,14 +76,14 @@ if __name__ == '__main__':
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims = 1000, length = 1e-6, 
             dt = 1e-12, cOpt = cOpt)
-    """
     #perm.processBrute(system)
     
     perm.milestoneMP(system, milestones, numSims = 10000, 
             length = 1e-6, dt = 1e-15, cOpt = cOpt)
     #perm.processMilestones(system, milestones)
     print '\n\n'
-
+    """
+    
     # Small hill system
     print '#'*30 + '\n#      Small Hill System        #\n'  + '#'*30
     name = 'smallhill'
@@ -114,10 +114,11 @@ if __name__ == '__main__':
     #perm.processBrute(system)
 
     perm.milestoneMP(system, milestones, numSims = 10000, 
-            length = 1e-4, dt = 1e-15, cOpt = cOpt)
+            length = 1e-4, dt = 1e-15, cOpt = cOpt, focus=[11,12,13,37,38,39])
     #perm.processMilestones(system, milestones)
     print '\n\n'
 
+    """
     # Urea like system
     print '#'*30 + '\n#         Urea System        #\n'  + '#'*30
     name = 'urea'
@@ -129,7 +130,6 @@ if __name__ == '__main__':
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
   
-    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -144,7 +144,6 @@ if __name__ == '__main__':
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1, 
             dt = 1e-12, cOpt = cOpt)
-    """
     #perm.processBrute(system)
 
     milestones = np.arange(-25, 26, 1)
@@ -164,7 +163,6 @@ if __name__ == '__main__':
     else:
         system = pickle.load(open('systems/%s_system.p'%(name), 'rb'))
   
-    """
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(name), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(name), dpi=300)
@@ -179,10 +177,10 @@ if __name__ == '__main__':
             dt = 1e-12, cOpt = cOpt)
     perm.bruteMPTimes(system, numSims=500, length = 1e-4, 
             dt = 1e-12, cOpt = cOpt)
-    """
     #perm.processBrute(system)
 
     perm.milestoneMP(system, milestones, numSims = 10000, 
             length = 1e-4, dt = 1e-15, cOpt = cOpt)
     #perm.processMilestones(system, milestones)
     print '\n\n'
+    """

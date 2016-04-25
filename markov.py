@@ -134,11 +134,6 @@ def resample(transCount, lifetimes, system, milestones):
         # Compute the stationary probability
         tabsorb = np.copy(lifetimes)
         tabsorb[0,N-1] = 0
-        pstat = np.multiply(qstat, tabsorb)
-
-        sumProb = np.sum(pstat)
-        pstat = pstat/sumProb   # Normalize to 1
-        pstat = pstat/pstat[0,0] # set first point to 0
 
         q = np.zeros((N,1))
         q[0,0] = 1
@@ -179,8 +174,8 @@ def resample(transCount, lifetimes, system, milestones):
         
         # Setup initial flux
         q = np.zeros(N)
-        q[0] = 1
-        
+        q[0] = 0.5
+        q[1] = 0.5        
         w, vl= LA.eig(K, left=True, right=False)
         if w[-1].real == 1:
             qstat = vl[:,-1].real    # Get first column

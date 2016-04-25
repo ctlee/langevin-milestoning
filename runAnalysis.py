@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.INFO, 
         format='[%(levelname)s] %(process)d %(processName)s: %(message)s')
 """
-systems = ['flat', 'smallhill', 'urea', 'codeine']
+
+#systems = ['flat', 'smallhill', 'urea', 'codeine']
+systems = ['smallhill']
 
 prefix = 'datasets/'
 for sys in systems:
@@ -20,6 +22,9 @@ for sys in systems:
     except:
         print "Could not find system... Continuing"
 
+    print "Rhyd = %0.2f A, mass = %0.2f g/mol, temp = %0.2f"%(system.r, 
+            system.m*6.022e23/1e-3, system.T)
+     
     fig1, fig2 = system.plotProfiles()
     fig1.savefig('figures/%s_pmf.png'%(sys), dpi=300)
     fig2.savefig('figures/%s_dz.png'%(sys), dpi=300)
@@ -30,6 +35,6 @@ for sys in systems:
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
     
-    #perm.processBrute(system, prefix)
+    perm.processBrute(system, prefix)
     perm.processMilestones(system, milestones, prefix)
     print '\n\n'
