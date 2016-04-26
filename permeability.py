@@ -596,7 +596,7 @@ def processMilestones(system, milestones, prefix='datasets/'):
 
 
     I = np.identity(N)
- 
+
     ########################################
     #    Plot the Transitions              #
     ########################################
@@ -638,9 +638,11 @@ def processMilestones(system, milestones, prefix='datasets/'):
     plt.tight_layout()
     fig.savefig('figures/%s_transitions.png'%(system.name), dpi=300)
     plt.close('all')
-
-    mfpts, rhos, P_MFPTs, P_PBCPs = resample(transCount, lifetimes, system, milestones)
     
+    mfpts, rhos, P_MFPTs, P_PBCPs = resample(transCount, lifetimes, system, milestones)
+    print "Generated %d resamples"%(len(P_PBCPs))
+    print P_MFPTs
+    print P_PBCPs
     # Setup initial flux
     q = np.zeros(N)
     q[0] = 0.5
@@ -671,7 +673,8 @@ def processMilestones(system, milestones, prefix='datasets/'):
     tabsorb[0, N-1] = 0
 
     q = np.zeros((N,1))
-    q[0,0] = 1
+    q[0,0] = 0.5
+    q[0,1] = 0.5
     K[N-1] = 0
     aux = LA.solve(I-K, tabsorb.T);
     mfpt = q.T.dot(aux)
@@ -718,10 +721,31 @@ def processMilestones(system, milestones, prefix='datasets/'):
     K[0,1] = 0.5
     K[0,N-1] = 0.5
 
+    """
+    for row in np.arange(0,N,1):
+        #print row, rowSum[row]
+        if row == 0:
+            #print transCount[row, row], transCount[row,row+1]
+            # this row is artificially sampled
+            reverseCount[row] = 0
+            forwardCount[row] = 0
+        elif row == 1:
+            reverseCount[row] = 0
+            forwardCount[row] = transCount[row, row+1]
+        elif row == N-1:
+            #print transCount[row, row-1], transCount[row, row]
+            reverseCount[row] = transCount[row, row-1]
+            forwardCount[row] = 0
+        else:
+            #print transCount[row,row-1], transCount[row, row], transCount[row,row+1]
+            reverseCount[row] = transCount[row, row-1]
+            forwardCount[row] = transCount[row, row+1]
+    """
     # Setup initial flux
     q = np.zeros(N)
     q[0] = 0.5
-    q[1] = 0.5 
+    q[1] = 0.5
+
     w, vl= LA.eig(K, left=True, right=False)
     if w[-1].real == 1:
         qstat = vl[:,-1].real    # Get first column
@@ -743,7 +767,6 @@ def processMilestones(system, milestones, prefix='datasets/'):
     pstat = pstat/pstat[0,0] # set first point to 0
     
     Pdamped = np.trapz(pstat, milestones)/(2*mfpt) * 1e-8 # A/s -> cm/s
-    dpstd = np.std(P_MFPTs)
     Phigh = Pdamped + dpstd
     Plow = Pdamped - dpstd
     if Plow < 0:
@@ -775,7 +798,9 @@ def processMilestones(system, milestones, prefix='datasets/'):
     ax1.margins(0,0.05)
     if system.name == 'flat':
         ax1.set_ylim([-2,2])
+    """
     if system.name == 'smallhill':
         ax1.set_ylim([-2,2])
+    """
     fig.savefig('figures/%s_pmf_calc.png'%(system.name), dpi=300)
     plt.close('all')
