@@ -107,8 +107,8 @@ def resample(transCount, lifetimes, system, milestones):
     mfpts = []
     dampedPs = []
     nondampedPs = []
-    Qsamples = monte_carlo_milestoning_nonreversible_error(transCount, lifetimes.T, 
-            num=1000, skip=100)
+    Qsamples = monte_carlo_milestoning_nonreversible_error(transCount.T, lifetimes.T, 
+            num=1, skip=100)
    
     I = np.identity(N)
 
@@ -116,16 +116,6 @@ def resample(transCount, lifetimes, system, milestones):
         K, lifetimes = rate_mat_to_prob_mat(Qs)
         K = K.T
         lifetimes = lifetimes.T
-
-
-        for row in np.arange(0,N,1):
-            #print row, rowSum[row]
-            if row == 0:
-                print K[row, row], K[row,row+1]
-            elif row == N-1:
-                print K[row, row-1], K[row, row]
-            else:
-                print K[row,row-1], K[row, row], K[row,row+1]
         
         q = np.zeros(N)
         q[0] = 0.5
@@ -146,12 +136,13 @@ def resample(transCount, lifetimes, system, milestones):
         tabsorb[0,N-1] = 0
 
         q = np.zeros((N,1))
-        q[0,0] = 0.5
-        q[0,1] = 0.5
+        q[0] = 0.5
+        q[1] = 0.5
         K[N-1] = 0
         aux = LA.solve(I-K, tabsorb.T);
         mfpt = q.T.dot(aux)
-        mfpts.append(mfpt[0,0])
+        mfpt = mfpt[0,0]
+        mfpts.append(mfpt)
 
         # Setup the fancy looping boundaries where 0 and N-1 are absorbing
         K[0,0] = 1  # Absorbing
@@ -205,7 +196,7 @@ def resample(transCount, lifetimes, system, milestones):
         sumProb = np.sum(pstat)
         pstat = pstat/sumProb   # Normalize to 1
         pstat = pstat/pstat[0,0] # set first point to 0
-        
+         
         Pdamped = np.trapz(pstat, milestones)/(2*mfpt) * 1e-8 # A/s -> cm/s
-        dampedPs.append(Pdamped[0,0])
+        dampedPs.append(Pdamped)
     return mfpts, rhos, dampedPs, nondampedPs
