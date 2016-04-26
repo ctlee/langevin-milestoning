@@ -113,8 +113,8 @@ if __name__ == '__main__':
     """
     #perm.processBrute(system)
 
-    perm.milestoneMP(system, milestones, numSims = 10000, 
-            length = 1e-4, dt = 1e-15, cOpt = cOpt, focus=[11,12,13,37,38,39])
+    perm.milestoneMP(system, milestones, numSims = 5000, 
+            length = 1e-4, dt = 1e-15, cOpt = cOpt)
     #perm.processMilestones(system, milestones)
     print '\n\n'
 

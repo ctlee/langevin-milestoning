@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO,
         format='[%(levelname)s] %(process)d %(processName)s: %(message)s')
 """
 
-#systems = ['flat', 'smallhill', 'urea', 'codeine']
-systems = ['smallhill']
+systems = ['flat', 'smallhill', 'urea', 'codeine']
+#systems = ['smallhill']
 
 prefix = 'datasets/'
 for sys in systems:

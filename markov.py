@@ -108,7 +108,7 @@ def resample(transCount, lifetimes, system, milestones):
     dampedPs = []
     nondampedPs = []
     Qsamples = monte_carlo_milestoning_nonreversible_error(transCount, lifetimes.T, 
-            num=1, skip=100)
+            num=1000, skip=100)
    
     I = np.identity(N)
 
@@ -117,6 +117,16 @@ def resample(transCount, lifetimes, system, milestones):
         K = K.T
         lifetimes = lifetimes.T
 
+
+        for row in np.arange(0,N,1):
+            #print row, rowSum[row]
+            if row == 0:
+                print K[row, row], K[row,row+1]
+            elif row == N-1:
+                print K[row, row-1], K[row, row]
+            else:
+                print K[row,row-1], K[row, row], K[row,row+1]
+        
         q = np.zeros(N)
         q[0] = 0.5
         q[1] = 0.5
@@ -136,7 +146,8 @@ def resample(transCount, lifetimes, system, milestones):
         tabsorb[0,N-1] = 0
 
         q = np.zeros((N,1))
-        q[0,0] = 1
+        q[0,0] = 0.5
+        q[0,1] = 0.5
         K[N-1] = 0
         aux = LA.solve(I-K, tabsorb.T);
         mfpt = q.T.dot(aux)
