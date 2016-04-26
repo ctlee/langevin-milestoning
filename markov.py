@@ -108,7 +108,7 @@ def resample(transCount, lifetimes, system, milestones):
     dampedPs = []
     nondampedPs = []
     Qsamples = monte_carlo_milestoning_nonreversible_error(transCount.T, lifetimes.T, 
-            num=1, skip=100)
+            num=50, skip=100)
    
     I = np.identity(N)
 
