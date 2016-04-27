@@ -36,8 +36,10 @@ import numpy as np
 from scipy.interpolate import PchipInterpolator as pchip
 
 import matplotlib
+"""
 if sys.platform == 'darwin':
     matplotlib.use('macosx') # cocoa rendering for Mac OS X
+"""
 import matplotlib.pyplot as plt
 import plottools
 
