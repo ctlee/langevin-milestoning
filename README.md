@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/langevin-milestoning/badge/?version=latest)](http://langevin-milestoning.readthedocs.org/en/latest/?badge=latest)
+
 # 1-D Langevin Dynamics 
 
 This code implements Langevin dynamics in 1-D across user specified potential
