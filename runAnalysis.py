@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO,
         format='[%(levelname)s] %(process)d %(processName)s: %(message)s')
 """
 
-systems = ['flat', 'smallhill', 'urea', 'codeine']
-#systems = ['smallhill']
+#systems = ['flat', 'smallhill', 'urea', 'codeine']
+systems = ['smallhill', 'smallhill_flat', 'diffusivity']
 
 prefix = 'datasets/'
 for sys in systems:
@@ -35,6 +35,6 @@ for sys in systems:
     if abs(ihsdP - smolP) > 1e-4:
         logging.warning("Equation 22 is not equal")
     
-    perm.processBrute(system, prefix)
+    #perm.processBrute(system, prefix)
     perm.processMilestones(system, milestones, prefix)
     print '\n\n'
