@@ -4,11 +4,7 @@ This code implements Langevin dynamics in 1-D across user specified potential
 of mean force and diffusivity profiles. 
 
 We use this code for validating the new permeability equation for milestoning 
-applications.
-
-## Documentation and Examples
-
-Sphinx?
+applications.  See our [Docs](http://langevin-milestoning.readthedocs.org/en/latest/).
 
 ## Building
 
