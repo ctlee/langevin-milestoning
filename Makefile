@@ -25,9 +25,6 @@ pcg-c:
 traj_tools: pcg-c
 	make -C $@ install
 
-docs:
-	make -C docs html
-
 clean:
 	make -C traj_tools clean
 	make -C pcg-c clean
